@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Services.Abstractions;
+using Shared;
 
 namespace Presentation
 {
@@ -14,10 +15,12 @@ namespace Presentation
     public class ProductsController(IServiceManager serviceManager) : ControllerBase
     {
         // endpoint : public non-static method
-        [HttpGet] // endpoint : GET : URL = api/products
-        public async Task<IActionResult> GetAllProducts()
+        // endpoint : GET : URL = api/products
+        // Sort : nameasc [default] , name desc , price asc , price desc
+        [HttpGet] 
+        public async Task<IActionResult> GetAllProducts([FromQuery] ProductSpecificationsParameters specsParams)
         {
-           var result = await serviceManager.ProductService.GetAllProductsAsync();
+           var result = await serviceManager.ProductService.GetAllProductsAsync(specsParams);
             if (result is null) return BadRequest(); // status Code : 400
             return Ok(result); // status Code : 200 
         }
@@ -29,9 +32,21 @@ namespace Presentation
             if (result is null) return NotFound(); // 404
             return Ok(result);
         }
+        [HttpGet("brands")]
+        public async Task<IActionResult> GetAllBrands()
+        {
+            var result = await serviceManager.ProductService.GetAllBrandsAsync();
+            if (result is null) return BadRequest(); // 400
+            return Ok(result); // 200
+        }
 
-
-
+        [HttpGet("types")]
+        public async Task<IActionResult> GetAllTypes()
+        {
+            var result = await serviceManager.ProductService.GetAllTypesAsync();
+            if (result is null) return BadRequest(); // 400
+            return Ok(result); // 200
+        }
 
     }
 }

@@ -1,0 +1,26 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Text;
+using System.Threading.Tasks;
+using Domain.Models;
+
+namespace Domain.Contracts
+{
+    public interface ISpecifications<TEntity,TKey> where TEntity : BaseEntity<TKey>
+    {
+        // this expression will be for where
+         Expression<Func<TEntity, bool>>? Criteria { get; set; }
+        // this expression will be for include
+        List<Expression<Func<TEntity, object>>> IncludeExpressions { get; set; }
+
+         Expression<Func<TEntity , object>>? OrderBy { get; set; }
+         Expression<Func<TEntity , object>>? OrderByDescending { get; set; }
+
+         int Skip { get; set; }
+         int Take { get; set; }
+         bool IsPagination { get; set; }
+
+    }
+}
