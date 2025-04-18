@@ -1,0 +1,69 @@
+﻿using Domain.Exceptions;
+using Shared.ErrorsModels;
+
+namespace Store.Api.Middlewares
+{
+    public class GlobalErrorHandlingMiddleware
+    {
+        private readonly RequestDelegate _next;
+        private readonly ILogger<GlobalErrorHandlingMiddleware> _logger;
+
+        public GlobalErrorHandlingMiddleware(RequestDelegate next , ILogger<GlobalErrorHandlingMiddleware> logger)
+        {
+            _next = next;
+            _logger = logger;
+        }
+
+        public async Task InvokeAsync(HttpContext context)
+        {
+            try
+            {
+                await _next.Invoke(context);
+                if(context.Response.StatusCode == StatusCodes.Status404NotFound)
+                {
+                    context.Response.ContentType = "application/json";
+                    var response = new ErrorDetails()
+                    {
+                        StatusCode = StatusCodes.Status404NotFound,
+                        ErrorMessage = $"End Point {context.Request.Path} Not Found"
+                    };
+
+                    await context.Response.WriteAsJsonAsync(response);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log Exception
+                _logger.LogError(ex.Message);
+
+
+                // 1. Set Status Code For Response
+                //context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                // 2. Set Content Type Code For Response
+                context.Response.ContentType = "application/json";
+
+                // 3. Response Object (body)
+                var response = new ErrorDetails()
+                {
+                    ErrorMessage = ex.Message 
+                };
+
+
+                response.StatusCode = ex switch
+                {
+                    NotFoundException => StatusCodes.Status404NotFound,
+                    _ => StatusCodes.Status500InternalServerError
+
+                };
+
+                context.Response.StatusCode = response.StatusCode;
+
+                // 4. Return Response
+                await context.Response.WriteAsJsonAsync(response);
+
+            }
+        }
+
+
+    }
+}

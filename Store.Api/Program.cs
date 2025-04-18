@@ -5,6 +5,7 @@ using Persistence;
 using Persistence.Data;
 using Services;
 using Services.Abstractions;
+using Store.Api.Middlewares;
 
 namespace Store.Api
 {
@@ -47,7 +48,7 @@ namespace Store.Api
             await dbInitializer.InitializeAsync();
             #endregion
 
-
+            app.UseMiddleware<GlobalErrorHandlingMiddleware>();
 
 
             // Configure the HTTP request pipeline.
