@@ -1,6 +1,9 @@
 ﻿using Domain.Contracts;
+using Domain.Models.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Persistence;
+using Persistence.Identity;
 using Services;
 using Shared.ErrorsModels;
 using Store.Api.Middlewares;
@@ -18,6 +21,9 @@ namespace Store.Api.Extensions
 
 
             services.AddInfrastructureServices(configuration);
+
+            services.AddIdentityServices();
+
             services.AddApplicationServices();
 
             services.ConfigureServices();
@@ -30,6 +36,14 @@ namespace Store.Api.Extensions
         private static IServiceCollection AddBuiltInServices(this IServiceCollection services)
         {
             services.AddControllers();
+
+            return services;
+        }
+
+        private static IServiceCollection AddIdentityServices(this IServiceCollection services)
+        {
+            services.AddIdentity<AppUser, IdentityRole>()
+                .AddEntityFrameworkStores<StoreIdentityDbContext>();
 
             return services;
         }
@@ -98,6 +112,7 @@ namespace Store.Api.Extensions
             using var scope = app.Services.CreateScope(); // unmanaged resource indicate to lifetime for the object that run in runtime so when you deal with unmanaged resources so you have to use using keyword
             var dbInitializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>(); // ASk CLR To Create Object from DbInitializer
             await dbInitializer.InitializeAsync();
+            await dbInitializer.InitializeIdentityAsync();
             #endregion
 
             return app;
