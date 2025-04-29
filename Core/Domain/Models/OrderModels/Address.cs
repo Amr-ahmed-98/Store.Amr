@@ -1,0 +1,28 @@
+﻿namespace Domain.Models.OrderModels
+{
+    // this class will be part of table Order so you won't create a table
+    // so this class won't inherit from BaseEntity
+    public class Address
+    {
+
+        public Address()
+        {
+            
+        }
+
+        public Address(string firstName, string lastName, string street, string city, string country)
+        {
+            FirstName = firstName;
+            LastName = lastName;
+            Street = street;
+            City = city;
+            Country = country;
+        }
+
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Street { get; set; }
+        public string City { get; set; }
+        public string Country { get; set; }
+    }
+}

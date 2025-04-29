@@ -1,12 +1,18 @@
 ﻿using Domain.Contracts;
 using Domain.Models.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Persistence;
 using Persistence.Identity;
 using Services;
+using Shared;
 using Shared.ErrorsModels;
 using Store.Api.Middlewares;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.DependencyInjection;
+using System.Text;
+using Microsoft.Extensions.Configuration;
 
 namespace Store.Api.Extensions
 {
@@ -24,11 +30,11 @@ namespace Store.Api.Extensions
 
             services.AddIdentityServices();
 
-            services.AddApplicationServices();
+            services.AddApplicationServices(configuration);
 
             services.ConfigureServices();
 
-
+            services.ConfigureJwtServices(configuration);
 
             return services;
         }
@@ -36,6 +42,31 @@ namespace Store.Api.Extensions
         private static IServiceCollection AddBuiltInServices(this IServiceCollection services)
         {
             services.AddControllers();
+
+            return services;
+        } 
+        private static IServiceCollection ConfigureJwtServices(this IServiceCollection services , IConfiguration configuration)
+        {
+            var JwtOptions = configuration.GetSection("JwtOptions").Get<JwtOptions>();
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidateLifetime = true,
+
+                    ValidIssuer = JwtOptions.Issuer,
+                    ValidAudience = JwtOptions.Audience,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtOptions.SecretKey)),
+                };
+            });
 
             return services;
         }
@@ -96,6 +127,7 @@ namespace Store.Api.Extensions
             app.UseStaticFiles();
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 
